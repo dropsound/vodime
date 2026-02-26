@@ -6,7 +6,7 @@ import LoginPage from './pages/LoginPage';
 
 function App() {
   return (
-    <div className="min-h-screen bg-slate-900 text-white">
+    <div className="min-h-screen bg-taupe-900  text-taupe-50">
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/admin" element={<AdminPage />} />

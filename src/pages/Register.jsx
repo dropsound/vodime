@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { auth, db } from '../services/firebase';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
-import { UserPlus, Mail, Lock, Loader2, ArrowLeft } from 'lucide-react';
+import { UserPlus, Mail, Lock, Loader2, ArrowLeft, UserCircle } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 
 const Register = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [nadimak, setNadimak] = useState(''); // Novo stanje za nadimak
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -18,38 +19,32 @@ const Register = () => {
     setError('');
 
     try {
-      // 1. Kreiramo korisnika u Authentication delu
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // 2. POVEZIVANJE SA BAZOM: Kreiramo dokument u kolekciji "korisnici"
-      // Koristimo user.uid kao ID dokumenta da bismo lakše povezali podatke
+      // Snimamo nadimak u bazu pod tim UID-om
       await setDoc(doc(db, "korisnici", user.uid), {
         email: user.email,
+        nadimak: nadimak, // Čuvamo nadimak
         uloga: 'korisnik',
-        omiljeni: [], // Ovde ćemo kasnije dodavati ID-eve svirki
+        omiljeni: [],
         datumRegistracije: new Date().toISOString()
       });
 
-      console.log("Korisnik uspešno registrovan i ubačen u bazu!");
-      navigate('/'); // Vodimo ga na početnu stranicu
+      navigate('/'); 
     } catch (err) {
       console.error(err);
-      if (err.code === 'auth/email-already-in-use') {
-        setError('Ovaj email je već u upotrebi.');
-      } else {
-        setError('Greška: Lozinka mora imati bar 6 karaktera.');
-      }
+      setError('Greška pri registraciji. Proverite podatke.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center p-4">
-      <div className="bg-slate-800 border border-slate-700 p-8 rounded-3xl shadow-2xl max-w-sm w-full relative">
+    <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center p-4 font-sans">
+      <div className="bg-slate-800 border border-slate-700 p-8 rounded-[2.5rem] shadow-2xl max-w-sm w-full relative">
         
-        <Link to="/" className="absolute top-4 left-4 text-slate-500 hover:text-white transition-colors">
+        <Link to="/" className="absolute top-6 left-6 text-slate-500 hover:text-white transition-colors">
           <ArrowLeft size={20} />
         </Link>
 
@@ -57,15 +52,25 @@ const Register = () => {
           <UserPlus size={32} />
         </div>
         
-        <h2 className="text-2xl font-black mb-2 text-center tracking-tight">KREIRAJ NALOG</h2>
-        <p className="text-slate-400 text-center text-xs mb-8 uppercase tracking-widest">Pridruži se ekipi</p>
+        <h2 className="text-2xl font-black mb-1 text-center tracking-tight">PRIDRUŽI SE</h2>
+        <p className="text-slate-500 text-center text-[10px] mb-8 uppercase tracking-[0.2em] font-bold">Kreiraj svoj profil</p>
         
         <form onSubmit={handleRegister} className="space-y-4">
+          {/* POLJE ZA NADIMAK */}
+          <div className="relative">
+            <UserCircle className="absolute left-3 top-3.5 text-slate-500" size={18} />
+            <input 
+              type="text" placeholder="Tvoj nadimak" required
+              className="w-full pl-10 pr-4 py-3.5 rounded-2xl bg-slate-900 border border-slate-700 focus:border-purple-500 focus:outline-none transition-all text-sm"
+              onChange={(e) => setNadimak(e.target.value)}
+            />
+          </div>
+
           <div className="relative">
             <Mail className="absolute left-3 top-3.5 text-slate-500" size={18} />
             <input 
               type="email" placeholder="Email adresa" required
-              className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-900 border border-slate-700 focus:border-purple-500 focus:outline-none transition-all text-sm"
+              className="w-full pl-10 pr-4 py-3.5 rounded-2xl bg-slate-900 border border-slate-700 focus:border-purple-500 focus:outline-none transition-all text-sm"
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
@@ -74,23 +79,23 @@ const Register = () => {
             <Lock className="absolute left-3 top-3.5 text-slate-500" size={18} />
             <input 
               type="password" placeholder="Lozinka (min. 6 karaktera)" required
-              className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-900 border border-slate-700 focus:border-purple-500 focus:outline-none transition-all text-sm"
+              className="w-full pl-10 pr-4 py-3.5 rounded-2xl bg-slate-900 border border-slate-700 focus:border-purple-500 focus:outline-none transition-all text-sm"
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
 
-          {error && <p className="text-red-400 text-xs text-center font-bold">{error}</p>}
+          {error && <p className="text-red-400 text-[10px] text-center font-bold uppercase tracking-wider">{error}</p>}
 
           <button 
             type="submit" disabled={loading}
-            className="w-full bg-purple-600 hover:bg-purple-500 disabled:bg-slate-700 py-3 rounded-xl font-black transition-all active:scale-95 flex justify-center items-center gap-2 shadow-lg shadow-purple-900/20"
+            className="w-full bg-purple-600 hover:bg-purple-500 disabled:bg-slate-700 py-4 rounded-2xl font-black transition-all active:scale-95 flex justify-center items-center gap-2 shadow-lg shadow-purple-900/20 uppercase tracking-widest text-xs"
           >
-            {loading ? <Loader2 className="animate-spin" size={20} /> : "REGISTRUJ SE"}
+            {loading ? <Loader2 className="animate-spin" size={20} /> : "Završi registraciju"}
           </button>
         </form>
 
-        <p className="mt-6 text-center text-slate-500 text-xs">
-          Već imaš nalog? <Link to="/login" className="text-purple-400 hover:underline">Prijavi se</Link>
+        <p className="mt-8 text-center text-slate-500 text-[10px] font-bold uppercase tracking-widest">
+          Imaš nalog? <Link to="/login" className="text-purple-400 hover:text-purple-300">Prijava</Link>
         </p>
       </div>
     </div>
